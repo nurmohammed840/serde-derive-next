@@ -1,5 +1,5 @@
 [package]
-name = "serde_derive_next"
+name = "serde_derive_next_impl"
 version = "1.0.210"
 authors = ["Nur <nurmohammed840@gmail.com>", "Erick Tryzelaar <erick.tryzelaar@gmail.com>", "David Tolnay <dtolnay@gmail.com>"]
 categories = ["no-std", "no-std::no-alloc"]
@@ -17,10 +17,6 @@ rust-version = "1.56"
 [features]
 default = []
 deserialize_in_place = []
-
-[lib]
-name = "serde_derive_next"
-proc-macro = true
 
 [dependencies]
 proc-macro2 = { version = "1", features = ["proc-macro"] }

@@ -1,0 +1,9 @@
+[package]
+name = "bench"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+proc-macro2 = { version = "1", features = [] }
+serde_derive_impl = { path = "../crates/serde_derive_impl" }
+serde_derive_next_impl = { path = "../crates/serde_derive_next_impl" }

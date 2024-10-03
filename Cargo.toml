@@ -1,3 +1,9 @@
 [workspace]
-members = ["crates/serde_derive", "crates/serde_derive_next"]
+members = [
+  "bench",
+  "crates/serde_derive",
+  "crates/serde_derive_impl",
+  "crates/serde_derive_next",
+  "crates/serde_derive_next_impl",
+]
 resolver = "2"

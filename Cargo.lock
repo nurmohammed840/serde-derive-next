@@ -3,6 +3,15 @@
 version = 3
 
 [[package]]
+name = "bench"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "serde_derive_impl",
+ "serde_derive_next_impl",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.86"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -51,7 +60,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_derive_impl"
+version = "1.0.210"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde",
+ "syn",
+]
+
+[[package]]
 name = "serde_derive_next"
+version = "1.0.210"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde",
+ "syn",
+]
+
+[[package]]
+name = "serde_derive_next_impl"
 version = "1.0.210"
 dependencies = [
  "proc-macro2",
