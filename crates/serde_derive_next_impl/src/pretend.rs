@@ -184,7 +184,7 @@ fn pretend_variants_used(cont: &Container) -> TokenStream {
     quote!(#(#cases)*)
 }
 
-mod __ {
+pub mod __ {
     #![allow(dead_code)]
     use crate::internals::ast::{Container, Data, Field, Style, Variant};
     use proc_macro2::TokenStream;

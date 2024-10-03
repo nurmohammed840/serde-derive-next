@@ -22,12 +22,15 @@ pub fn wrap_in_const(serde_path: Option<&syn::Path>, code: TokenStream) -> Token
     }
 }
 
-mod __ {
+pub mod __ {
     #![allow(dead_code)]
     use proc_macro2::TokenStream;
     use quote2::{quote, Quote};
 
-    pub fn wrap_in_const(serde_path: Option<&syn::Path>, code: TokenStream) -> TokenStream {
+    pub fn wrap_in_const(
+        serde_path: Option<&syn::Path>,
+        code: impl quote2::IntoTokens,
+    ) -> TokenStream {
         let use_serde = quote(|t| match serde_path {
             Some(path) => {
                 quote!(t, {
