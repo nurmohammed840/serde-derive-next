@@ -63,6 +63,7 @@
 #![cfg_attr(all(test, exhaustive), feature(non_exhaustive_omitted_patterns_lint))]
 
 extern crate proc_macro2;
+extern crate quote2;
 extern crate quote;
 extern crate syn;
 
