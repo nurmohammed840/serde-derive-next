@@ -64,11 +64,68 @@ impl ToTokens for Match {
     }
 }
 
-impl AsRef<TokenStream> for Fragment {
-    fn as_ref(&self) -> &TokenStream {
-        match self {
-            Fragment::Expr(expr) => expr,
-            Fragment::Block(block) => block,
+pub mod __ {
+    #![allow(dead_code)]
+    use proc_macro2::TokenStream;
+    use quote::ToTokens;
+    // use quote2::{Quote, Token};
+
+    pub enum Fragment<'a> {
+        /// Tokens that can be used as an expression.
+        Expr(Box<dyn Fn(&mut TokenStream) + 'a>),
+        /// Tokens that can be used inside a block. The surrounding curly braces are
+        /// not part of these tokens.
+        Block(Box<dyn Fn(&mut TokenStream) + 'a>),
+    }
+
+    pub fn quote_block<'a>(f: impl Fn(&mut TokenStream) + 'a) -> Fragment<'a> {
+        Fragment::Block(Box::new(f))
+    }
+
+    pub fn quote_expr<'a>(f: impl Fn(&mut TokenStream) + 'a) -> Fragment<'a> {
+        Fragment::Expr(Box::new(f))
+    }
+
+    /// Interpolate a fragment in place of an expression. This involves surrounding
+    /// Block fragments in curly braces.
+    pub struct Expr<'a>(pub Fragment<'a>);
+
+    impl ToTokens for Expr<'_> {
+        fn to_tokens(&self, out: &mut TokenStream) {
+            match &self.0 {
+                Fragment::Expr(expr) => expr(out),
+                Fragment::Block(block) => {
+                    syn::token::Brace::default().surround(out, |out| block(out));
+                }
+            }
+        }
+    }
+
+    /// Interpolate a fragment as the statements of a block.
+    pub struct Stmts<'a>(pub Fragment<'a>);
+    impl ToTokens for Stmts<'_> {
+        fn to_tokens(&self, out: &mut TokenStream) {
+            match &self.0 {
+                Fragment::Expr(expr) => expr(out),
+                Fragment::Block(block) => block(out),
+            }
+        }
+    }
+
+    /// Interpolate a fragment as the value part of a `match` expression. This
+    /// involves putting a comma after expressions and curly braces around blocks.
+    pub struct Match<'a>(pub Fragment<'a>);
+    impl ToTokens for Match<'_> {
+        fn to_tokens(&self, out: &mut TokenStream) {
+            match &self.0 {
+                Fragment::Expr(expr) => {
+                    expr(out);
+                    <syn::Token![,]>::default().to_tokens(out);
+                }
+                Fragment::Block(block) => {
+                    syn::token::Brace::default().surround(out, |out| block(out));
+                }
+            }
         }
     }
 }
