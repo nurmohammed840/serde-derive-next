@@ -1,0 +1,3 @@
+[workspace]
+members = ["crates/serde_derive", "crates/serde_derive_next"]
+resolver = "2"
