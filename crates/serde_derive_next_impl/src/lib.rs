@@ -93,14 +93,10 @@ macro_rules! syn_parse2 {
 
 pub fn derive_serialize(input: TokenStream) -> TokenStream {
     let mut input: DeriveInput = syn_parse2!(input);
-    ser::expand_derive_serialize(&mut input)
-        .unwrap_or_else(syn::Error::into_compile_error)
-        .into()
+    ser::expand_derive_serialize(&mut input).unwrap_or_else(syn::Error::into_compile_error)
 }
 
 pub fn derive_deserialize(input: TokenStream) -> TokenStream {
     let mut input: DeriveInput = syn_parse2!(input);
-    de::expand_derive_deserialize(&mut input)
-        .unwrap_or_else(syn::Error::into_compile_error)
-        .into()
+    de::expand_derive_deserialize(&mut input).unwrap_or_else(syn::Error::into_compile_error)
 }

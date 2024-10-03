@@ -42,10 +42,8 @@ dependencies = [
 name = "serde_derive"
 version = "1.0.210"
 dependencies = [
- "proc-macro2",
- "quote",
  "serde",
- "syn",
+ "serde_derive_impl",
 ]
 
 [[package]]
@@ -73,10 +71,8 @@ dependencies = [
 name = "serde_derive_next"
 version = "1.0.210"
 dependencies = [
- "proc-macro2",
- "quote",
  "serde",
- "syn",
+ "serde_derive_next_impl",
 ]
 
 [[package]]
