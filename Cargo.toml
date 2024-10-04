@@ -7,3 +7,10 @@ members = [
   "crates/serde_derive_next_impl", "example",
 ]
 resolver = "2"
+
+
+[profile.dev]
+opt-level = 3
+
+[profile.dev.package."*"]
+opt-level = 3
