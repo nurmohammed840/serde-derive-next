@@ -23,14 +23,12 @@ pub fn wrap_in_const(serde_path: Option<&syn::Path>, code: TokenStream) -> Token
 }
 
 pub mod __ {
-    #![allow(dead_code)]
+    use crate::quote_into;
     use proc_macro2::TokenStream;
+    use quote::ToTokens;
     use quote2::{quote, Quote};
 
-    pub fn wrap_in_const(
-        serde_path: Option<&syn::Path>,
-        code: impl quote2::IntoTokens,
-    ) -> TokenStream {
+    pub fn wrap_in_const(serde_path: Option<&syn::Path>, code: impl ToTokens) -> TokenStream {
         let use_serde = quote(|t| match serde_path {
             Some(path) => {
                 quote!(t, {
@@ -45,15 +43,13 @@ pub mod __ {
             }
         });
 
-        let mut t = TokenStream::new();
-        quote!(t, {
+        quote_into! {
             #[doc(hidden)]
             #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
             const _: () = {
                 #use_serde
                 #code
             };
-        });
-        t
+        }
     }
 }

@@ -31,9 +31,8 @@ dependencies = [
 
 [[package]]
 name = "quote2"
-version = "0.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "156b5a2eb0f0e38f5f957c44a060bc83c2ea2c6023bb51e6f7601ab7ae9aca43"
+version = "0.9.0"
+source = "git+https://github.com/nurmohammed840/quote2.git?branch=dev#0f2c616430563cf4cba550cbd8999718b714afd5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -42,9 +41,8 @@ dependencies = [
 
 [[package]]
 name = "quote2-macros"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "758f0cc4d60ce6b2d21ae5ebf9dda656d44bbd053ec82b0c8dc7ec5847da060b"
+version = "0.9.0"
+source = "git+https://github.com/nurmohammed840/quote2.git?branch=dev#0f2c616430563cf4cba550cbd8999718b714afd5"
 
 [[package]]
 name = "serde"

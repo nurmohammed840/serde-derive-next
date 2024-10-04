@@ -186,10 +186,14 @@ fn pretend_variants_used(cont: &Container) -> TokenStream {
 
 pub mod __ {
     #![allow(dead_code)]
-    use crate::internals::ast::{Container, Data, Field, Style, Variant};
+
+    use crate::{
+        internals::ast::{Container, Data, Field, Style, Variant},
+        quote_fn,
+    };
     use proc_macro2::TokenStream;
     use quote::format_ident;
-    use quote2::{quote, Quote, Token};
+    use quote2::{quote, Quote};
 
     // Suppress dead_code warnings that would otherwise appear when using a remote
     // derive. Other than this pretend code, a struct annotated with remote derive
@@ -208,10 +212,7 @@ pub mod __ {
     //     8 | enum EnumDef { V }
     //       |                ^
     //
-    pub fn pretend_used<'c>(
-        cont: &'c Container,
-        is_packed: bool,
-    ) -> Token<impl FnOnce(&mut TokenStream) + 'c> {
+    pub fn pretend_used<'a>(cont: &'a Container, is_packed: bool) -> quote_fn!(type 'a) {
         quote(move |t| {
             pretend_fields_used(t, cont, is_packed);
             pretend_variants_used(t, cont);
@@ -389,7 +390,7 @@ pub mod __ {
         }
     }
 
-    fn placeholders<'a>(fields: &'a [Field]) -> Token<impl FnOnce(&mut TokenStream) + 'a> {
+    fn placeholders<'a>(fields: &'a [Field]) -> quote_fn!(type 'a) {
         quote(move |t| {
             for (i, Field { member, .. }) in fields.iter().enumerate() {
                 let placeholder = format_ident!("__v{}", i);

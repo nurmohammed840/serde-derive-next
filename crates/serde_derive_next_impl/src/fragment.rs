@@ -10,18 +10,6 @@ pub enum Fragment {
     Block(TokenStream),
 }
 
-macro_rules! quote_expr {
-    ($($tt:tt)*) => {
-        $crate::fragment::Fragment::Expr(quote!($($tt)*))
-    }
-}
-
-macro_rules! quote_block {
-    ($($tt:tt)*) => {
-        $crate::fragment::Fragment::Block(quote!($($tt)*))
-    }
-}
-
 /// Interpolate a fragment in place of an expression. This involves surrounding
 /// Block fragments in curly braces.
 pub struct Expr(pub Fragment);
@@ -65,7 +53,6 @@ impl ToTokens for Match {
 }
 
 pub mod __ {
-    #![allow(dead_code)]
     use proc_macro2::TokenStream;
     use quote::ToTokens;
     // use quote2::{Quote, Token};
@@ -85,6 +72,30 @@ pub mod __ {
     pub fn quote_expr<'a>(f: impl Fn(&mut TokenStream) + 'a) -> Fragment<'a> {
         Fragment::Expr(Box::new(f))
     }
+
+    #[macro_export]
+    macro_rules! quote_block {
+        [$($tts:tt)*] => {
+            quote_block(move |t| {
+                quote!(t, {
+                    $($tts)*
+                });
+            })
+        };
+    }
+    pub use quote_block;
+
+    #[macro_export]
+    macro_rules! quote_expr {
+        [$($tts:tt)*] => {
+            quote_expr(move |t| {
+                quote!(t, {
+                    $($tts)*
+                });
+            })
+        };
+    }
+    pub use quote_expr;
 
     /// Interpolate a fragment in place of an expression. This involves surrounding
     /// Block fragments in curly braces.

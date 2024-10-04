@@ -10,6 +10,18 @@ use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::{parse_quote, Ident, Index, Member};
 
+macro_rules! quote_expr {
+    ($($tt:tt)*) => {
+        $crate::fragment::Fragment::Expr(quote!($($tt)*))
+    }
+}
+
+macro_rules! quote_block {
+    ($($tt:tt)*) => {
+        $crate::fragment::Fragment::Block(quote!($($tt)*))
+    }
+}
+
 pub fn expand_derive_deserialize(input: &mut syn::DeriveInput) -> syn::Result<TokenStream> {
     replace_receiver(input);
 
