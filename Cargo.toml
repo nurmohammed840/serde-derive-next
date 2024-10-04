@@ -4,6 +4,6 @@ members = [
   "crates/serde_derive",
   "crates/serde_derive_impl",
   "crates/serde_derive_next",
-  "crates/serde_derive_next_impl",
+  "crates/serde_derive_next_impl", "example",
 ]
 resolver = "2"
