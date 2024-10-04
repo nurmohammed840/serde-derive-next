@@ -273,9 +273,9 @@ fn serialize_tuple_struct<'a>(
 
     let let_mut = mut_if(serialized_fields.peek().is_some());
 
-    let len = {
-        let mut len = quote_into!(0);
-        for (i, field) in serialized_fields {
+    let len = quote(move |t| {
+        quote!(t, { 0 });
+        for (i, field) in serialized_fields.clone() {
             match field.attrs.skip_serializing_if() {
                 Some(path) => {
                     let index = syn::Index {
@@ -283,15 +283,14 @@ fn serialize_tuple_struct<'a>(
                         span: Span::call_site(),
                     };
                     let field_expr = get_member(params, field, &Member::Unnamed(index));
-                    quote!(len, { + if #path(#field_expr) { 0 } else { 1 } });
+                    quote!(t, { + if #path(#field_expr) { 0 } else { 1 } });
                 }
                 None => {
-                    quote!(len, { + 1 });
+                    quote!(t, { + 1 });
                 }
             }
         }
-        len
-    };
+    });
 
     quote_block! {
         let #let_mut __serde_state = _serde::Serializer::serialize_tuple_struct(__serializer, #type_name, #len)?;
@@ -359,22 +358,21 @@ fn serialize_struct_as_struct<'a>(
 
     let let_mut = mut_if(serialized_fields.peek().is_some() || tag_field_exists);
 
-    let len = {
-        let mut len = quote_into!(#tag_field_exists as usize);
-        for field in serialized_fields {
+    let len = quote(move |t| {
+        quote!(t, { 0 });
+        for field in serialized_fields.clone() {
             match field.attrs.skip_serializing_if() {
                 Some(path) => {
                     let field_expr = get_member(params, field, &field.member);
-                    quote!(len, { + if #path(#field_expr) { 0 } else { 1 } });
+                    quote!(t, { + if #path(#field_expr) { 0 } else { 1 } });
                 }
                 None => {
-                    quote!(len, { + 1 });
+                    quote!(t, { + 1 });
                 }
             }
         }
-        len
-    };
-    
+    });
+
     quote_block! {
         let #let_mut __serde_state = _serde::Serializer::serialize_struct(__serializer, #type_name, #len)?;
         #tag_field
@@ -856,21 +854,20 @@ fn serialize_tuple_variant<'a>(
 
     let let_mut = mut_if(serialized_fields.peek().is_some());
 
-    let len = {
-        let mut len = quote_into!(0);
-        for (i, field) in serialized_fields {
+    let len = quote(move |t| {
+        quote!(t, { 0 });
+        for (i, field) in serialized_fields.clone() {
             match field.attrs.skip_serializing_if() {
                 Some(path) => {
                     let field_expr = Ident::new(&format!("__field{}", i), Span::call_site());
-                    quote!(len, { + if #path(#field_expr) { 0 } else { 1 } });
+                    quote!(t, { + if #path(#field_expr) { 0 } else { 1 } });
                 }
                 None => {
-                    quote!(len, { + 1 });
+                    quote!(t, { + 1 });
                 }
             }
         }
-        len
-    };
+    });
 
     match context {
         TupleVariant::ExternallyTagged {
@@ -938,21 +935,20 @@ fn serialize_struct_variant<'a>(
 
     let let_mut = mut_if(serialized_fields.peek().is_some());
 
-    let len = {
-        let mut len = quote_into!(0);
-        for field in serialized_fields {
+    let len = quote(move |t| {
+        quote!(t, { 0 });
+        for field in serialized_fields.clone() {
             let member = &field.member;
             match field.attrs.skip_serializing_if() {
                 Some(path) => {
-                    quote!(len, { + if #path(#member) { 0 } else { 1 } });
+                    quote!(t, { + if #path(#member) { 0 } else { 1 } });
                 }
                 None => {
-                    quote!(len, { + 1 });
+                    quote!(t, { + 1 });
                 }
             };
         }
-        len
-    };
+    });
 
     match context {
         StructVariant::ExternallyTagged {
