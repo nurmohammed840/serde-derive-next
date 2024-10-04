@@ -8,7 +8,7 @@ Example:
 ";
 
 const ITERS: &[usize] = &[1, 10, 100, 10000];
-const PROGRAMS: &[&str] = &["simple.rs"];
+const PROGRAMS: &[&str] = &["simple.rs", "user.rs"];
 
 fn main() {
     if cfg!(debug_assertions) {
@@ -18,7 +18,7 @@ fn main() {
     let data_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("data");
 
     for iter in ITERS.iter().copied() {
-        println!("\n\nIter: {iter}");
+        println!("\nIter: {iter}");
 
         for program in PROGRAMS {
             let content = fs::read_to_string(data_dir.join(program)).unwrap();
@@ -67,6 +67,7 @@ fn main() {
             //         time_end
             //     );
             // }
+            println!("");
         }
     }
 }

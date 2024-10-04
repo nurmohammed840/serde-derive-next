@@ -273,19 +273,25 @@ fn serialize_tuple_struct<'a>(
 
     let let_mut = mut_if(serialized_fields.peek().is_some());
 
-    let len = serialized_fields
-        .map(|(i, field)| match field.attrs.skip_serializing_if() {
-            None => quote_into!(1),
-            Some(path) => {
-                let index = syn::Index {
-                    index: i as u32,
-                    span: Span::call_site(),
-                };
-                let field_expr = get_member(params, field, &Member::Unnamed(index));
-                quote_into!(if #path(#field_expr) { 0 } else { 1 })
+    let len = {
+        let mut len = quote_into!(0);
+        for (i, field) in serialized_fields {
+            match field.attrs.skip_serializing_if() {
+                Some(path) => {
+                    let index = syn::Index {
+                        index: i as u32,
+                        span: Span::call_site(),
+                    };
+                    let field_expr = get_member(params, field, &Member::Unnamed(index));
+                    quote!(len, { + if #path(#field_expr) { 0 } else { 1 } });
+                }
+                None => {
+                    quote!(len, { + 1 });
+                }
             }
-        })
-        .fold(quote_into!(0), |sum, expr| quote_into!(#sum + #expr));
+        }
+        len
+    };
 
     quote_block! {
         let #let_mut __serde_state = _serde::Serializer::serialize_tuple_struct(__serializer, #type_name, #len)?;
@@ -350,18 +356,21 @@ fn serialize_struct_as_struct<'a>(
 
     let let_mut = mut_if(serialized_fields.peek().is_some() || tag_field_exists);
 
-    let len = serialized_fields
-        .map(|field| match field.attrs.skip_serializing_if() {
-            None => quote_into!(1),
-            Some(path) => {
-                let field_expr = get_member(params, field, &field.member);
-                quote_into!(if #path(#field_expr) { 0 } else { 1 })
+    let len = {
+        let mut len = quote_into!(#tag_field_exists as usize);
+        for field in serialized_fields {
+            match field.attrs.skip_serializing_if() {
+                Some(path) => {
+                    let field_expr = get_member(params, field, &field.member);
+                    quote!(len, { + if #path(#field_expr) { 0 } else { 1 } });
+                }
+                None => {
+                    quote!(len, { + 1 });
+                }
             }
-        })
-        .fold(
-            quote_into!(#tag_field_exists as usize),
-            |sum, expr| quote_into!(#sum + #expr),
-        );
+        }
+        len
+    };
 
     quote_block! {
         let #let_mut __serde_state = _serde::Serializer::serialize_struct(__serializer, #type_name, #len)?;
@@ -844,15 +853,21 @@ fn serialize_tuple_variant<'a>(
 
     let let_mut = mut_if(serialized_fields.peek().is_some());
 
-    let len = serialized_fields
-        .map(|(i, field)| match field.attrs.skip_serializing_if() {
-            None => quote_into!(1),
-            Some(path) => {
-                let field_expr = Ident::new(&format!("__field{}", i), Span::call_site());
-                quote_into!(if #path(#field_expr) { 0 } else { 1 })
+    let len = {
+        let mut len = quote_into!(0);
+        for (i, field) in serialized_fields {
+            match field.attrs.skip_serializing_if() {
+                Some(path) => {
+                    let field_expr = Ident::new(&format!("__field{}", i), Span::call_site());
+                    quote!(len, { + if #path(#field_expr) { 0 } else { 1 } });
+                }
+                None => {
+                    quote!(len, { + 1 });
+                }
             }
-        })
-        .fold(quote_into!(0), |sum, expr| quote_into!(#sum + #expr));
+        }
+        len
+    };
 
     match context {
         TupleVariant::ExternallyTagged {
@@ -920,32 +935,21 @@ fn serialize_struct_variant<'a>(
 
     let let_mut = mut_if(serialized_fields.peek().is_some());
 
-    let len = serialized_fields
-        .map(|field| {
+    let len = {
+        let mut len = quote_into!(0);
+        for field in serialized_fields {
             let member = &field.member;
-
             match field.attrs.skip_serializing_if() {
-                Some(path) => quote_into!(if #path(#member) { 0 } else { 1 }),
-                None => quote_into!(1),
-            }
-        })
-        .fold(quote_into!(0), |sum, expr| quote_into!(#sum + #expr));
-
-    // New Implementation:
-    // {
-    //     let mut len = quote_into!(0);
-    //     for field in serialized_fields {
-    //         let member = &field.member;
-    //         match field.attrs.skip_serializing_if() {
-    //             Some(path) => {
-    //                 quote!(len, { + if #path(#member) { 0 } else { 1 } });
-    //             }
-    //             None => {
-    //                 quote!(len, { + 1 });
-    //             }
-    //         };
-    //     }
-    // }
+                Some(path) => {
+                    quote!(len, { + if #path(#member) { 0 } else { 1 } });
+                }
+                None => {
+                    quote!(len, { + 1 });
+                }
+            };
+        }
+        len
+    };
 
     match context {
         StructVariant::ExternallyTagged {
