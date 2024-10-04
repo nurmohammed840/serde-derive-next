@@ -323,16 +323,19 @@ fn serialize_struct<'a>(
     }
 }
 
-fn serialize_struct_tag_field(cattrs: &attr::Container, struct_trait: StructTrait) -> TokenStream {
+fn serialize_struct_tag_field<'a>(
+    cattrs: &'a attr::Container,
+    struct_trait: StructTrait,
+) -> Option<quote_fn!(type 'a)> {
     match cattrs.tag() {
-        attr::TagType::Internal { tag } => {
+        attr::TagType::Internal { tag } => Some(quote(move |t| {
             let type_name = cattrs.name().serialize_name();
             let func = struct_trait.serialize_field(Span::call_site());
-            quote_into! {
+            quote!(t, {
                 #func(&mut __serde_state, #tag, #type_name)?;
-            }
-        }
-        _ => quote_into! {},
+            });
+        })),
+        _ => None,
     }
 }
 
@@ -347,7 +350,7 @@ fn serialize_struct_as_struct<'a>(
     let type_name = cattrs.name().serialize_name();
 
     let tag_field = serialize_struct_tag_field(cattrs, StructTrait::SerializeStruct);
-    let tag_field_exists = !tag_field.is_empty();
+    let tag_field_exists = tag_field.is_some();
 
     let mut serialized_fields = fields
         .iter()
@@ -371,7 +374,7 @@ fn serialize_struct_as_struct<'a>(
         }
         len
     };
-
+    
     quote_block! {
         let #let_mut __serde_state = _serde::Serializer::serialize_struct(__serializer, #type_name, #len)?;
         #tag_field
@@ -389,7 +392,7 @@ fn serialize_struct_as_map<'a>(
         serialize_struct_visitor(fields, params, false, StructTrait::SerializeMap);
 
     let tag_field = serialize_struct_tag_field(cattrs, StructTrait::SerializeMap);
-    let tag_field_exists = !tag_field.is_empty();
+    let tag_field_exists = tag_field.is_some();
 
     let mut serialized_fields = fields
         .iter()
@@ -1198,7 +1201,7 @@ fn field_expr_serialize_with<'a>(
 ) -> quote_fn!(type 'a) {
     quote(move |t| {
         if let Some(path) = field.attrs.serialize_with() {
-            wrap_serialize_field_with(params, field.ty, path, field_expr.clone()).0(t);
+            wrap_serialize_field_with(params, field.ty, path, field_expr.clone()).to_tokens(t);
         } else {
             t.add_tokens(&field_expr);
         }
