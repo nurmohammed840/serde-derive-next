@@ -67,7 +67,7 @@ fn main() {
             //         time_end
             //     );
             // }
-            println!("");
+            println!();
         }
     }
 }

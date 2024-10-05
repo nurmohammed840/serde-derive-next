@@ -349,7 +349,7 @@ pub mod __ {
 
         let type_ident = &cont.ident;
         let (_, ty_generics, _) = cont.generics.split_for_impl();
-        let ref turbofish = ty_generics.as_turbofish();
+        let turbofish = &ty_generics.as_turbofish();
 
         for variant in variants {
             let variant_ident = &variant.ident;

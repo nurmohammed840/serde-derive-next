@@ -322,10 +322,10 @@ fn serialize_struct<'a>(
     }
 }
 
-fn serialize_struct_tag_field<'a>(
-    cattrs: &'a attr::Container,
+fn serialize_struct_tag_field(
+    cattrs: &attr::Container,
     struct_trait: StructTrait,
-) -> Option<quote_fn!(type 'a)> {
+) -> Option<quote_fn!(type '_)> {
     match cattrs.tag() {
         attr::TagType::Internal { tag } => Some(quote(move |t| {
             let type_name = cattrs.name().serialize_name();
@@ -1073,7 +1073,7 @@ fn serialize_tuple_struct_visitor<'a>(
             .enumerate()
             .filter(|(_, field)| !field.attrs.skip_serializing())
         {
-            let ref field_expr = if is_enum {
+            let field_expr = &if is_enum {
                 let id = Ident::new(&format!("__field{}", i), Span::call_site());
                 quote_into!(#id)
             } else {
@@ -1119,7 +1119,7 @@ fn serialize_struct_visitor<'a>(
         {
             let member = &field.member;
 
-            let ref field_expr = if is_enum {
+            let field_expr = &if is_enum {
                 quote_into!(#member)
             } else {
                 get_member(params, field, member)
