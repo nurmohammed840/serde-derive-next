@@ -362,8 +362,8 @@ pub mod __ {
 
             let sep_placeholders = quote(|t| {
                 for (_, placeholder) in &placeholders {
-                    t.add_tokens(placeholder);
-                    t.add_punct(',');
+                    quote!(t, { #placeholder, });
+
                 }
             });
 

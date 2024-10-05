@@ -13,8 +13,8 @@ macro_rules! quote_into {
 
 #[macro_export]
 macro_rules! quote_fn {
-    (type $lt: lifetime) => { quote2::Token<impl Fn(&mut TokenStream) + $lt> };
-    (type) => { quote2::Token<impl Fn(&mut TokenStream)> };
+    (type $lt: lifetime) => { quote2::QuoteFn<impl Fn(&mut TokenStream) + $lt> };
+    (type) => { quote2::QuoteFn<impl Fn(&mut TokenStream)> };
     ($span:tt=> $($t:tt)*) => {
         quote2::quote(move |t| {
             quote2::quote_spanned!($span, t, {

@@ -41,7 +41,7 @@ dependencies = [
 [[package]]
 name = "quote2"
 version = "0.9.0"
-source = "git+https://github.com/nurmohammed840/quote2.git?branch=dev#0f2c616430563cf4cba550cbd8999718b714afd5"
+source = "git+https://github.com/nurmohammed840/quote2.git?branch=dev#225151625a7062b3eef899306e131f8e3dfab368"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -51,7 +51,7 @@ dependencies = [
 [[package]]
 name = "quote2-macros"
 version = "0.9.0"
-source = "git+https://github.com/nurmohammed840/quote2.git?branch=dev#0f2c616430563cf4cba550cbd8999718b714afd5"
+source = "git+https://github.com/nurmohammed840/quote2.git?branch=dev#225151625a7062b3eef899306e131f8e3dfab368"
 
 [[package]]
 name = "serde"

@@ -1288,7 +1288,7 @@ fn wrap_serialize_with<'a>(
 fn mut_if(is_mut: bool) -> quote_fn!(type) {
     quote(move |t| {
         if is_mut {
-            t.add_ident("mut");
+            quote!(t, { mut });
         }
     })
 }
