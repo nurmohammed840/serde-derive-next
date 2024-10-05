@@ -359,7 +359,7 @@ fn serialize_struct_as_struct<'a>(
     let let_mut = mut_if(serialized_fields.peek().is_some() || tag_field_exists);
 
     let len = quote(move |t| {
-        quote!(t, { 0 });
+        quote!(t, { #tag_field_exists as usize });
         for field in serialized_fields.clone() {
             match field.attrs.skip_serializing_if() {
                 Some(path) => {

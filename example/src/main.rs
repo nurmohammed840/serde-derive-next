@@ -1,6 +1,6 @@
 #[derive(serde_derive::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct _User1 {
+pub struct _User1 { 
     pub user_id: i64,
     pub id: i64,
     pub name: String,
