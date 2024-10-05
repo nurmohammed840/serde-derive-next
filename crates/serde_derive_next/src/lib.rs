@@ -1,7 +1,7 @@
 extern crate proc_macro;
 use proc_macro::TokenStream;
 
-use std::{fmt::Write,  io, time::Instant};
+use std::{fmt::Write, io, time::Instant};
 
 fn is_real_bench() -> bool {
     std::env::var("REAL_BENCH").is_ok_and(|val| val == "1")

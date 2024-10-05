@@ -394,10 +394,9 @@ fn serialize_struct_as_map<'a>(
 
     let mut serialized_fields = fields
         .iter()
-        .filter(|&field| !field.attrs.skip_serializing())
-        .peekable();
+        .filter(|&field| !field.attrs.skip_serializing());
 
-    let let_mut = mut_if(serialized_fields.peek().is_some() || tag_field_exists);
+    let let_mut = mut_if(serialized_fields.next().is_some() || tag_field_exists);
 
     quote_block! {
         let #let_mut __serde_state = _serde::Serializer::serialize_map(__serializer, _serde::__private::None)?;
@@ -874,26 +873,22 @@ fn serialize_tuple_variant<'a>(
             type_name,
             variant_index,
             variant_name,
-        } => quote_block(move |t| {
-            quote!(t, {
-                let #let_mut __serde_state = _serde::Serializer::serialize_tuple_variant(
-                    __serializer,
-                    #type_name,
-                    #variant_index,
-                    #variant_name,
-                    #len
-                )?;
-                #serialize_stmts
-                _serde::ser::SerializeTupleVariant::end(__serde_state)
-            });
-        }),
-        TupleVariant::Untagged => quote_block(move |t| {
-            quote!(t, {
-                let #let_mut __serde_state = _serde::Serializer::serialize_tuple(__serializer, #len)?;
-                #serialize_stmts
-                _serde::ser::SerializeTuple::end(__serde_state)
-            });
-        }),
+        } => quote_block! {
+            let #let_mut __serde_state = _serde::Serializer::serialize_tuple_variant(
+                __serializer,
+                #type_name,
+                #variant_index,
+                #variant_name,
+                #len
+            )?;
+            #serialize_stmts
+            _serde::ser::SerializeTupleVariant::end(__serde_state)
+        },
+        TupleVariant::Untagged => quote_block! {
+            let #let_mut __serde_state = _serde::Serializer::serialize_tuple(__serializer, #len)?;
+            #serialize_stmts
+            _serde::ser::SerializeTuple::end(__serde_state)
+        },
     }
 }
 
@@ -954,34 +949,28 @@ fn serialize_struct_variant<'a>(
         StructVariant::ExternallyTagged {
             variant_index,
             variant_name,
-        } => quote_block(move |t| {
-            quote!(t, {
-                let #let_mut __serde_state = _serde::Serializer::serialize_struct_variant(
-                    __serializer,
-                    #name,
-                    #variant_index,
-                    #variant_name,
-                    #len,
-                )?;
-                #serialize_fields
-                _serde::ser::SerializeStructVariant::end(__serde_state)
-            });
-        }),
-        StructVariant::InternallyTagged { tag, variant_name } => quote_block(move |t| {
-            quote!(t, {
-                let mut __serde_state = _serde::Serializer::serialize_struct(__serializer, #name, #len + 1,)?;
-                _serde::ser::SerializeStruct::serialize_field(&mut __serde_state, #tag, #variant_name,)?;
-                #serialize_fields
-                _serde::ser::SerializeStruct::end(__serde_state)
-            });
-        }),
-        StructVariant::Untagged => quote_block(move |t| {
-            quote!(t, {
-                let #let_mut __serde_state = _serde::Serializer::serialize_struct(__serializer, #name, #len,)?;
-                #serialize_fields
-                _serde::ser::SerializeStruct::end(__serde_state)
-            });
-        }),
+        } => quote_block! {
+            let #let_mut __serde_state = _serde::Serializer::serialize_struct_variant(
+                __serializer,
+                #name,
+                #variant_index,
+                #variant_name,
+                #len,
+            )?;
+            #serialize_fields
+            _serde::ser::SerializeStructVariant::end(__serde_state)
+        },
+        StructVariant::InternallyTagged { tag, variant_name } => quote_block! {
+            let mut __serde_state = _serde::Serializer::serialize_struct(__serializer, #name, #len + 1,)?;
+            _serde::ser::SerializeStruct::serialize_field(&mut __serde_state, #tag, #variant_name,)?;
+            #serialize_fields
+            _serde::ser::SerializeStruct::end(__serde_state)
+        },
+        StructVariant::Untagged => quote_block! {
+            let #let_mut __serde_state = _serde::Serializer::serialize_struct(__serializer, #name, #len,)?;
+            #serialize_fields
+            _serde::ser::SerializeStruct::end(__serde_state)
+        },
     }
 }
 
@@ -1053,29 +1042,22 @@ fn serialize_struct_variant_with_flatten<'a>(
                 });
             })
         }
-        StructVariant::InternallyTagged { tag, variant_name } => quote_block(move |t| {
-            quote!(t, {
-                let #let_mut __serde_state = _serde::Serializer::serialize_map(__serializer, _serde::__private::None)?;
-                _serde::ser::SerializeMap::serialize_entry(
-                    &mut __serde_state,
-                    #tag,
-                    #variant_name,
-                )?;
+        StructVariant::InternallyTagged { tag, variant_name } => quote_block! {
+            let #let_mut __serde_state = _serde::Serializer::serialize_map(__serializer, _serde::__private::None)?;
+            _serde::ser::SerializeMap::serialize_entry(
+                &mut __serde_state,
+                #tag,
+                #variant_name,
+            )?;
 
-                #serialize_fields
-                _serde::ser::SerializeMap::end(__serde_state)
-            });
-        }),
-        StructVariant::Untagged => quote_block(move |t| {
-            quote!(t, {
-                let #let_mut __serde_state = _serde::Serializer::serialize_map(
-                    __serializer,
-                    _serde::__private::None)?;
-
-                #serialize_fields
-                _serde::ser::SerializeMap::end(__serde_state)
-            });
-        }),
+            #serialize_fields
+            _serde::ser::SerializeMap::end(__serde_state)
+        },
+        StructVariant::Untagged => quote_block! {
+            let #let_mut __serde_state = _serde::Serializer::serialize_map(__serializer, _serde::__private::None)?;
+            #serialize_fields
+            _serde::ser::SerializeMap::end(__serde_state)
+        },
     }
 }
 
@@ -1152,7 +1134,6 @@ fn serialize_struct_visitor<'a>(
             let span = field.original.span();
 
             let ser = quote(move |t| {
-                let ref field_expr = field_expr;
                 if field.attrs.flatten() {
                     let func = quote_fn!(span => _serde::Serialize::serialize);
                     quote!(t, {
@@ -1274,30 +1255,26 @@ fn wrap_serialize_with<'a>(
     let wrapper_ty_generics = wrapper_ty_generics.to_token_stream();
     let wrapper_impl_generics = wrapper_impl_generics.to_token_stream();
 
-    quote(move |t| {
-        quote!(t, {
+    quote_fn!({
+        #[doc(hidden)]
+        struct __SerializeWith #wrapper_impl_generics #where_clause {
+            values: (#field_tys),
+            phantom: _serde::__private::PhantomData<#this_type #ty_generics>,
+        }
+
+        impl #wrapper_impl_generics _serde::Serialize for __SerializeWith #wrapper_ty_generics #where_clause {
+            fn serialize<__S>(&self, __s: __S) -> _serde::__private::Result<__S::Ok, __S::Error>
+            where
+                __S: _serde::Serializer,
             {
-                #[doc(hidden)]
-                struct __SerializeWith #wrapper_impl_generics #where_clause {
-                    values: (#field_tys),
-                    phantom: _serde::__private::PhantomData<#this_type #ty_generics>,
-                }
-
-                impl #wrapper_impl_generics _serde::Serialize for __SerializeWith #wrapper_ty_generics #where_clause {
-                    fn serialize<__S>(&self, __s: __S) -> _serde::__private::Result<__S::Ok, __S::Error>
-                    where
-                        __S: _serde::Serializer,
-                    {
-                        #serialize_with(#field_access __s)
-                    }
-                }
-
-                &__SerializeWith {
-                    values: (#field_exprs),
-                    phantom: _serde::__private::PhantomData::<#this_type #ty_generics>,
-                }
+                #serialize_with(#field_access __s)
             }
-        });
+        }
+
+        &__SerializeWith {
+            values: (#field_exprs),
+            phantom: _serde::__private::PhantomData::<#this_type #ty_generics>,
+        }
     })
 }
 
@@ -1359,8 +1336,8 @@ enum StructTrait {
 }
 
 impl StructTrait {
-    fn serialize_field(&self, span: Span) -> quote_fn!(type '_) {
-        quote(move |t| match *self {
+    fn serialize_field(self, span: Span) -> quote_fn!(type) {
+        quote(move |t| match self {
             StructTrait::SerializeMap => {
                 quote_spanned!(span, t, { _serde::ser::SerializeMap::serialize_entry });
             }
@@ -1375,12 +1352,12 @@ impl StructTrait {
         })
     }
 
-    fn skip_field(&self, span: Span) -> Option<quote_fn!(type '_)> {
-        match *self {
+    fn skip_field(self, span: Span) -> Option<quote_fn!(type)> {
+        match self {
             StructTrait::SerializeMap => None,
             StructTrait::SerializeStruct | StructTrait::SerializeStructVariant => {
                 Some(quote(move |t: &mut TokenStream| {
-                    if let StructTrait::SerializeStruct = *self {
+                    if let StructTrait::SerializeStruct = self {
                         quote_spanned!(span, t, { _serde::ser::SerializeStruct::skip_field });
                     } else {
                         quote_spanned!(span, t, {
@@ -1401,8 +1378,8 @@ enum TupleTrait {
 }
 
 impl TupleTrait {
-    fn serialize_element(&self, span: Span) -> quote_fn!(type '_) {
-        quote(move |t| match *self {
+    fn serialize_element(self, span: Span) -> quote_fn!(type) {
+        quote(move |t| match self {
             TupleTrait::SerializeTuple => {
                 quote_spanned!(span, t, { _serde::ser::SerializeTuple::serialize_element });
             }
