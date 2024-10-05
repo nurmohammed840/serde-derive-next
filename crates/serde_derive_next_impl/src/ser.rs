@@ -1223,58 +1223,59 @@ fn wrap_serialize_with<'a>(
     field_tys: Vec<&'a syn::Type>,
     field_exprs: Vec<TokenStream>,
 ) -> quote_fn!(type 'a) {
-    let this_type = &params.this_type;
-    let (_, ty_generics, where_clause) = params.generics.split_for_impl();
+    quote(move |t| {
+        let this_type = &params.this_type;
+        let (_, ty_generics, where_clause) = params.generics.split_for_impl();
 
-    let wrapper_generics = if field_exprs.is_empty() {
-        params.generics.clone()
-    } else {
-        bound::with_lifetime_bound(&params.generics, "'__a")
-    };
-    let (wrapper_impl_generics, wrapper_ty_generics, _) = wrapper_generics.split_for_impl();
+        let wrapper_generics = if field_exprs.is_empty() {
+            params.generics.clone()
+        } else {
+            bound::with_lifetime_bound(&params.generics, "'__a")
+        };
+        let (wrapper_impl_generics, wrapper_ty_generics, _) = wrapper_generics.split_for_impl();
 
-    let field_access = (0..field_exprs.len()).map(|n| {
-        Member::Unnamed(Index {
-            index: n as u32,
-            span: Span::call_site(),
-        })
-    });
+        let field_tys = quote_rep(&field_tys, |t, ty| {
+            quote!(t, { &'__a #ty, });
+        });
 
-    let field_tys = quote_rep(field_tys, |t, ty| {
-        quote!(t, { &'__a #ty, });
-    });
+        let field_access = (0..field_exprs.len()).map(|n| {
+            Member::Unnamed(Index {
+                index: n as u32,
+                span: Span::call_site(),
+            })
+        });
 
-    let field_access = quote_rep(field_access, |t, ty| {
-        quote!(t, { self.values.#ty, });
-    });
+        let field_access = quote_rep(field_access, |t, ty| {
+            quote!(t, { self.values.#ty, });
+        });
 
-    let field_exprs = quote_rep(field_exprs, |t, ty| {
-        quote!(t, { #ty, });
-    });
+        let field_exprs = quote_rep(&field_exprs, |t, ty| {
+            quote!(t, { #ty, });
+        });
 
-    let wrapper_ty_generics = wrapper_ty_generics.to_token_stream();
-    let wrapper_impl_generics = wrapper_impl_generics.to_token_stream();
-
-    quote_fn!({
-        #[doc(hidden)]
-        struct __SerializeWith #wrapper_impl_generics #where_clause {
-            values: (#field_tys),
-            phantom: _serde::__private::PhantomData<#this_type #ty_generics>,
-        }
-
-        impl #wrapper_impl_generics _serde::Serialize for __SerializeWith #wrapper_ty_generics #where_clause {
-            fn serialize<__S>(&self, __s: __S) -> _serde::__private::Result<__S::Ok, __S::Error>
-            where
-                __S: _serde::Serializer,
+        quote!(t, {
             {
-                #serialize_with(#field_access __s)
-            }
-        }
+                #[doc(hidden)]
+                struct __SerializeWith #wrapper_impl_generics #where_clause {
+                    values: (#field_tys),
+                    phantom: _serde::__private::PhantomData<#this_type #ty_generics>,
+                }
 
-        &__SerializeWith {
-            values: (#field_exprs),
-            phantom: _serde::__private::PhantomData::<#this_type #ty_generics>,
-        }
+                impl #wrapper_impl_generics _serde::Serialize for __SerializeWith #wrapper_ty_generics #where_clause {
+                    fn serialize<__S>(&self, __s: __S) -> _serde::__private::Result<__S::Ok, __S::Error>
+                    where
+                        __S: _serde::Serializer,
+                    {
+                        #serialize_with(#field_access __s)
+                    }
+                }
+
+                &__SerializeWith {
+                    values: (#field_exprs),
+                    phantom: _serde::__private::PhantomData::<#this_type #ty_generics>,
+                }
+            }
+        });
     })
 }
 
