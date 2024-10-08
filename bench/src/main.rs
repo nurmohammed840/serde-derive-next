@@ -7,7 +7,7 @@ Example:
     > cargo r -rp bench
 ";
 
-const ITERS: &[usize] = &[1, 10, 100, 10000];
+const ITERS: &[usize] = &[1, 10, 100, 1000];
 const PROGRAMS: &[&str] = &["simple.rs", "user.rs"];
 
 fn main() {

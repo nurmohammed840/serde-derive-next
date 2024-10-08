@@ -11,6 +11,12 @@ resolver = "2"
 
 [profile.dev]
 opt-level = 3
+# strip = true
+# lto = true
+# codegen-units = 1
+# panic = "abort"
 
 [profile.dev.package."*"]
 opt-level = 3
+# strip = true
+# codegen-units = 1
