@@ -21,7 +21,7 @@ deserialize_in_place = []
 [dependencies]
 proc-macro2 = { version = "1", features = ["proc-macro"] }
 quote = { version = "1", features = ["proc-macro"] }
-quote2 = { git = "https://github.com/nurmohammed840/quote2.git", branch = "dev" }
+quote2 = "0.9"
 syn = { version = "2", features = ["clone-impls", "derive", "parsing", "printing", "proc-macro"] }
 
 [dev-dependencies]
